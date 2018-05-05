@@ -2,6 +2,7 @@ package br.com.rodrigohsb.challenge.viewModel
 
 import android.arch.lifecycle.ViewModel
 import br.com.rodrigohsb.challenge.*
+import br.com.rodrigohsb.challenge.service.MyService
 import io.reactivex.Observable
 
 /**

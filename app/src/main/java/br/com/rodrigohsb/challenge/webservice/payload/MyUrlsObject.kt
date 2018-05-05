@@ -1,4 +1,4 @@
-package br.com.rodrigohsb.challenge
+package br.com.rodrigohsb.challenge.webservice.payload
 
 import com.google.gson.annotations.SerializedName
 

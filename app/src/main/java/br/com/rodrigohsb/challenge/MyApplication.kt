@@ -1,6 +1,7 @@
 package br.com.rodrigohsb.challenge
 
 import android.app.Application
+import br.com.rodrigohsb.challenge.webservice.MyWebServiceAPI
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit

@@ -1,5 +1,7 @@
-package br.com.rodrigohsb.challenge
+package br.com.rodrigohsb.challenge.service
 
+import br.com.rodrigohsb.challenge.MyApplication
+import br.com.rodrigohsb.challenge.webservice.payload.MyResponseObject
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers

@@ -1,5 +1,7 @@
 package br.com.rodrigohsb.challenge
 
+import br.com.rodrigohsb.challenge.entry.Photo
+
 /**
  * @rodrigohsb
  */

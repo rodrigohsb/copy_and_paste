@@ -1,5 +1,6 @@
 package br.com.rodrigohsb.challenge
 
+import br.com.rodrigohsb.challenge.entry.Photo
 import io.reactivex.Observable
 import io.reactivex.ObservableSource
 import io.reactivex.ObservableTransformer

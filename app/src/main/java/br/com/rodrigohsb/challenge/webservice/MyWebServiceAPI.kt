@@ -1,5 +1,6 @@
-package br.com.rodrigohsb.challenge
+package br.com.rodrigohsb.challenge.webservice
 
+import br.com.rodrigohsb.challenge.webservice.payload.MyResponseObject
 import io.reactivex.Observable
 import retrofit2.http.GET
 import retrofit2.http.Query
