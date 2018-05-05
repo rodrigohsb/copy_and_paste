@@ -1,59 +1,24 @@
 package br.com.rodrigohsb.challenge
 
 import android.app.Application
-import br.com.rodrigohsb.challenge.webservice.MyWebServiceAPI
-import okhttp3.OkHttpClient
-import okhttp3.logging.HttpLoggingInterceptor
-import retrofit2.Retrofit
-import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
-import retrofit2.converter.gson.GsonConverterFactory
-import java.util.concurrent.TimeUnit
+import br.com.rodrigohsb.challenge.di.Injector
+import com.github.salomonbrys.kodein.Kodein
+import com.github.salomonbrys.kodein.KodeinAware
+import com.github.salomonbrys.kodein.conf.ConfigurableKodein
 
 /**
  * @rodrigohsb
  */
-class MyApplication: Application() {
+class MyApplication: Application(), KodeinAware {
 
-    private lateinit var retrofit: Retrofit
-
-    private var mWebServiceAPi: MyWebServiceAPI? = null
-
-    companion object {
-
-        private lateinit var mInstance: MyApplication
-
-        fun getInstance(): MyApplication {
-            return mInstance
-        }
-    }
+    override val kodein = ConfigurableKodein(mutable = true)
 
     override fun onCreate() {
         super.onCreate()
-        mInstance = this
-        createRetrofitInstance()
+        kodein.addImport(appDependencies(), true)
     }
 
-    private fun createRetrofitInstance() {
-        val logging = HttpLoggingInterceptor()
-        logging.level = HttpLoggingInterceptor.Level.BODY
-
-        val httpClient = OkHttpClient.Builder()
-        httpClient.addInterceptor(logging)
-        httpClient.readTimeout(5, TimeUnit.SECONDS)
-
-        retrofit = Retrofit.Builder()
-                .baseUrl("https://api.unsplash.com/")
-                .client(httpClient.build())
-                .addConverterFactory(GsonConverterFactory.create())
-                .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
-                .build()
+    private fun appDependencies(): Kodein.Module {
+        return Injector(this).dependencies
     }
-
-    fun getWebServiceAPI(): MyWebServiceAPI {
-        if (mWebServiceAPi == null) {
-            mWebServiceAPi = retrofit.create<MyWebServiceAPI>(MyWebServiceAPI::class.java)
-        }
-        return mWebServiceAPi!!
-    }
-
 }

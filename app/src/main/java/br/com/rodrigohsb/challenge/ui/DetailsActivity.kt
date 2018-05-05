@@ -44,14 +44,14 @@ class DetailsActivity: AppCompatActivity() {
             items.add(item.url)
         }
 
-        val myAdapter = MyImageDetailsAdapter(items)
-
         LinearSnapHelper().attachToRecyclerView(detailsRecyclerView)
 
         with(detailsRecyclerView){
-            adapter = myAdapter
+            adapter = MyImageDetailsAdapter(items)
             setHasFixedSize(true)
-            layoutManager = LinearLayoutManager(this@DetailsActivity, LinearLayoutManager.HORIZONTAL, false)
+            layoutManager = LinearLayoutManager(this@DetailsActivity,
+                            LinearLayoutManager.HORIZONTAL,
+                            false)
             visibility = View.VISIBLE
         }
         detailsRecyclerView.layoutManager.scrollToPosition(position)

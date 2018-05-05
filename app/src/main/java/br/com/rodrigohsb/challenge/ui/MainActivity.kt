@@ -1,5 +1,7 @@
 package br.com.rodrigohsb.challenge.ui
 
+import android.arch.lifecycle.ViewModel
+import android.arch.lifecycle.ViewModelProvider
 import android.arch.lifecycle.ViewModelProviders
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
@@ -13,7 +15,11 @@ import br.com.rodrigohsb.challenge.State
 import br.com.rodrigohsb.challenge.adapter.Listener
 import br.com.rodrigohsb.challenge.entry.PhotoDetails
 import br.com.rodrigohsb.challenge.viewModel.MyViewModel
+import br.com.rodrigohsb.challenge.webservice.exceptions.*
 import br.com.rodrigohsb.joao_challenge.R
+import com.github.salomonbrys.kodein.LazyKodein
+import com.github.salomonbrys.kodein.android.appKodein
+import com.github.salomonbrys.kodein.instance
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
@@ -22,8 +28,16 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var myAdapter: MyImageAdapter
 
-    private val viewModel by lazy {
-        ViewModelProviders.of(this).get(MyViewModel::class.java)
+    val kodein by lazy {
+        LazyKodein(appKodein)
+    }
+
+    private val viewModel by lazy(LazyThreadSafetyMode.NONE) {
+
+        val factory = object : ViewModelProvider.Factory {
+            override fun <T : ViewModel> create(modelClass: Class<T>) = kodein.value.instance<MyViewModel>() as T
+        }
+        ViewModelProviders.of(this, factory).get(MyViewModel::class.java)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -39,7 +53,21 @@ class MainActivity : AppCompatActivity() {
 
                         is State.Loading -> showLoading()
 
-                        is State.Error -> { hideLoading() }
+                        is State.Error -> {
+                            hideLoading()
+
+                            textError.visibility = View.VISIBLE
+
+                            when(status.exception){
+                                is TimeoutException -> textError.text = "TimeoutException"
+                                is Error4XXException -> textError.text = "Error4XXException"
+                                is NoNetworkException -> textError.text = "NoNetworkException"
+                                is BadRequestException -> textError.text = "BadRequestException"
+                                is NoDataException -> textError.text = "NoDataException"
+                                is Error5XXException -> textError.text = "Error5XXException"
+                                else -> textError.text = "GenericError"
+                            }
+                        }
 
                         is State.Success -> {
                             hideLoading()

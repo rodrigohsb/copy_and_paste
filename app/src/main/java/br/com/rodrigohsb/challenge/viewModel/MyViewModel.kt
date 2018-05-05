@@ -8,11 +8,9 @@ import io.reactivex.Observable
 /**
  * @rodrigohsb
  */
-class MyViewModel: ViewModel() {
+class MyViewModel (val myService: MyService): ViewModel() {
 
     private var pageCount = 1
-
-    private val myService by lazy { MyService() }
 
     fun listPhotos(): Observable<State> {
 

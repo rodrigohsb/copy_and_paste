@@ -9,7 +9,7 @@ sealed class State {
 
     class Loading: State()
 
-    class Error(): State()
+    data class Error(val exception: Exception): State()
 
     data class Success(val photos: List<Photo>): State()
 

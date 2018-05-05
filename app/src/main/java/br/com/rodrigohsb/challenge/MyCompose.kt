@@ -18,8 +18,7 @@ class MyCompose: ObservableTransformer<List<Photo>,State> {
                     State.Success(photos) as State
                 }
                 .onErrorResumeNext { error: Throwable ->
-//                    Observable.just(State.Error(error as Exception))
-                    Observable.just(State.Error())
+                    Observable.just(State.Error(error as Exception))
                 }
     }
 }
