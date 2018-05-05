@@ -12,7 +12,8 @@ import kotlinx.android.synthetic.main.image_item.view.*
 /**
  * @rodrigohsb
  */
-class MyImageAdapter(private val photos: MutableList<Photo>): RecyclerView.Adapter<MyImageAdapter.ViewHolder>() {
+class MyImageAdapter(private val photos: MutableList<Photo>, val listener: Listener)
+    : RecyclerView.Adapter<MyImageAdapter.ViewHolder>() {
     
     companion object {
         const val TYPE_IMAGE = 0
@@ -49,10 +50,18 @@ class MyImageAdapter(private val photos: MutableList<Photo>): RecyclerView.Adapt
             .get()
             .load(photo.smallUrl)
             .into(holder.itemView.image)
+
+        holder.itemView.setOnClickListener {
+            listener.onItemClickAtPosition(position)
+        }
     }
 
     fun appendImages(newPhotos: List<Photo>) {
         photos.addAll(newPhotos)
         notifyDataSetChanged()
     }
+}
+
+interface Listener {
+    fun onItemClickAtPosition(position: Int)
 }

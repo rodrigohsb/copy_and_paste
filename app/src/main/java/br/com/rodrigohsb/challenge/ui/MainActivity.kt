@@ -10,6 +10,8 @@ import br.com.rodrigohsb.challenge.decorator.GridDividerItemDecoration
 import br.com.rodrigohsb.challenge.adapter.MyImageAdapter
 import br.com.rodrigohsb.challenge.entry.Photo
 import br.com.rodrigohsb.challenge.State
+import br.com.rodrigohsb.challenge.adapter.Listener
+import br.com.rodrigohsb.challenge.entry.PhotoDetails
 import br.com.rodrigohsb.challenge.viewModel.MyViewModel
 import br.com.rodrigohsb.joao_challenge.R
 import kotlinx.android.synthetic.main.activity_main.*
@@ -74,7 +76,19 @@ class MainActivity : AppCompatActivity() {
 
     private fun showImages(photos: List<Photo>){
 
-        myAdapter = MyImageAdapter(photos.toMutableList())
+        myAdapter = MyImageAdapter(photos.toMutableList(), object : Listener{
+            override fun onItemClickAtPosition(position: Int) {
+
+                val photosDetailsList = arrayListOf<PhotoDetails>()
+
+                for(item in photos){
+                    photosDetailsList.add(PhotoDetails(item.regularUrl))
+                }
+
+                DetailsActivity.start(this@MainActivity, position, photosDetailsList)
+            }
+        })
+
         val customGridLayoutManager = GridLayoutManager(this, 3)
         customGridLayoutManager.spanSizeLookup = object : GridLayoutManager.SpanSizeLookup() {
 
