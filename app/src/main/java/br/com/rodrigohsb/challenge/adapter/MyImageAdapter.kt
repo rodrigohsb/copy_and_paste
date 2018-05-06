@@ -58,7 +58,7 @@ class MyImageAdapter(private val photos: MutableList<Photo>, val listener: Liste
 
     fun appendImages(newPhotos: List<Photo>) {
         photos.addAll(newPhotos)
-        notifyDataSetChanged()
+        notifyItemRangeInserted(itemCount + 1, newPhotos.size)
     }
 }
 

@@ -2,7 +2,6 @@ package br.com.rodrigohsb.challenge.di
 
 import android.content.Context
 import android.net.ConnectivityManager
-import br.com.rodrigohsb.challenge.MyTransformer
 import br.com.rodrigohsb.challenge.service.MyService
 import br.com.rodrigohsb.challenge.viewModel.MyViewModel
 import br.com.rodrigohsb.challenge.webservice.MyWebServiceAPI
@@ -35,9 +34,6 @@ class Injector (val context: Context) {
 
         bind<MyService>() with provider {
             MyService(webServiceAPI = instance())
-        }
-        bind<MyTransformer>() with provider {
-            MyTransformer()
         }
 
         bind<NetworkService>() with provider {

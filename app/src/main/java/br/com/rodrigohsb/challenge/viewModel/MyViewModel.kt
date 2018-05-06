@@ -2,7 +2,9 @@ package br.com.rodrigohsb.challenge.viewModel
 
 import android.arch.lifecycle.ViewModel
 import br.com.rodrigohsb.challenge.*
+import br.com.rodrigohsb.challenge.entry.Photo
 import br.com.rodrigohsb.challenge.service.MyService
+import br.com.rodrigohsb.challenge.webservice.payload.MyResponseObject
 import io.reactivex.Observable
 
 /**
@@ -20,7 +22,7 @@ class MyViewModel (val myService: MyService): ViewModel() {
                     pageCount++
                     it
                 }
-                .map { MyTransformer().convert(it) }
+                .map { it.toPhotos() }
                 .compose(MyCompose())
                 .startWith(State.Loading())
     }
@@ -34,7 +36,10 @@ class MyViewModel (val myService: MyService): ViewModel() {
                     pageCount++
                     it
                 }
-                .map { MyTransformer().convert(it) }
+                .map { it.toPhotos() }
                 .compose(MyCompose())
     }
+
+    private fun List<MyResponseObject>.toPhotos() = map { it.toPhoto() }
+    private fun MyResponseObject.toPhoto() = Photo(id,urlsObject.smallImage,urlsObject.regularImage)
 }

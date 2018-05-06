@@ -13,13 +13,16 @@ import br.com.rodrigohsb.challenge.adapter.MyImageAdapter
 import br.com.rodrigohsb.challenge.entry.Photo
 import br.com.rodrigohsb.challenge.State
 import br.com.rodrigohsb.challenge.adapter.Listener
-import br.com.rodrigohsb.challenge.entry.PhotoDetails
+import br.com.rodrigohsb.challenge.extensions.gone
+import br.com.rodrigohsb.challenge.extensions.visible
 import br.com.rodrigohsb.challenge.viewModel.MyViewModel
 import br.com.rodrigohsb.challenge.webservice.exceptions.*
 import br.com.rodrigohsb.joao_challenge.R
 import com.github.salomonbrys.kodein.LazyKodein
 import com.github.salomonbrys.kodein.android.appKodein
 import com.github.salomonbrys.kodein.instance
+import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.rxkotlin.plusAssign
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
@@ -28,12 +31,15 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var myAdapter: MyImageAdapter
 
+    private val disposables by lazy { CompositeDisposable() }
+
     val kodein by lazy {
         LazyKodein(appKodein)
     }
 
     private val viewModel by lazy(LazyThreadSafetyMode.NONE) {
 
+        @Suppress("UNCHECKED_CAST")
         val factory = object : ViewModelProvider.Factory {
             override fun <T : ViewModel> create(modelClass: Class<T>) = kodein.value.instance<MyViewModel>() as T
         }
@@ -44,8 +50,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        viewModel.
-                listPhotos()
+        disposables += viewModel.listPhotos()
                 .subscribe({
                     status: State ->
 
@@ -81,8 +86,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun loadMore(){
-        viewModel.
-                loadMore()
+        disposables += viewModel.loadMore()
                 .subscribe({
                     status: State ->
                     hideFooterLoading()
@@ -106,13 +110,8 @@ class MainActivity : AppCompatActivity() {
 
         myAdapter = MyImageAdapter(photos.toMutableList(), object : Listener{
             override fun onItemClickAtPosition(position: Int) {
-
-                val photosDetailsList = arrayListOf<PhotoDetails>()
-
-                for(item in photos){
-                    photosDetailsList.add(PhotoDetails(item.regularUrl))
-                }
-
+                val photosDetailsList = arrayListOf<String>()
+                photos.mapTo(photosDetailsList){ it.regularUrl }
                 DetailsActivity.start(this@MainActivity, position, photosDetailsList)
             }
         })
@@ -136,50 +135,37 @@ class MainActivity : AppCompatActivity() {
             addItemDecoration(GridDividerItemDecoration(dimensionPixelSize, 3))
             layoutManager = customGridLayoutManager
             adapter = myAdapter
-            visibility = View.VISIBLE
+            visible()
             addOnScrollListener(OnVerticalScrollListener())
         }
     }
 
-    private fun hideLoading(){
-        progress.visibility = View.GONE
-    }
+    private fun hideLoading() = progress.gone()
 
-    private fun showLoading(){
-        progress.visibility = View.VISIBLE
-    }
+    private fun showLoading() = progress.visible()
 
-    private fun hideFooterLoading(){
-        footerProgress.visibility = View.GONE
-    }
+    private fun hideFooterLoading() = footerProgress.gone()
 
-    private fun showFooterLoading(){
-        footerProgress.visibility = View.VISIBLE
+    private fun showFooterLoading() = footerProgress.visible()
+
+    override fun onDestroy() {
+        disposables.clear()
+        super.onDestroy()
     }
 
     inner class OnVerticalScrollListener : RecyclerView.OnScrollListener() {
         override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-            if (canScrollVertically(recyclerView)) {
-                if (isLoading) {
-                    if (dy < 0) {
-                        hideFooterLoading()
-                        return
-                    }
-                }
-                return
-            }
-            loadMore()
-            if (isLoading) {
-                if (dy > 0) {
+            if (cannotScrollVertically(recyclerView)) {
+                loadMore()
+                if (isLoading && dy > 0) {
                     showFooterLoading()
                     return
                 }
             }
+            if (isLoading && dy < 0) hideFooterLoading()
         }
     }
 
-    private fun canScrollVertically(recyclerView: RecyclerView): Boolean {
-        return recyclerView.canScrollVertically(1)
-    }
-
+    private fun cannotScrollVertically(recyclerView: RecyclerView) =
+            !recyclerView.canScrollVertically(1)
 }
