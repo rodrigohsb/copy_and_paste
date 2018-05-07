@@ -5,6 +5,7 @@ import android.arch.lifecycle.ViewModel
 import android.arch.lifecycle.ViewModelProvider
 import android.arch.lifecycle.ViewModelProviders
 import android.content.Intent
+import android.content.res.Configuration
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.support.v7.widget.GridLayoutManager
@@ -32,9 +33,11 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var myAdapter: MyImageAdapter
 
-    private var photoList = mutableListOf<Photo>()
+    private var photoList = arrayListOf<Photo>()
 
     private lateinit var customGridLayoutManager: GridLayoutManager
+
+    private val CACHED_PHOTOS = "CACHED_PHOTOS"
 
     private val disposables by lazy { CompositeDisposable() }
 
@@ -55,6 +58,22 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        if (savedInstanceState != null && savedInstanceState.containsKey(CACHED_PHOTOS)) {
+            photoList = savedInstanceState.getParcelableArrayList(CACHED_PHOTOS)
+        }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        loadContent()
+    }
+
+    private fun loadContent() {
+        if(photoList.isNotEmpty()) {
+            hideLoading()
+            showImages(photoList)
+            return
+        }
         disposables += viewModel.listPhotos()
                 .subscribe({
                     status: State ->
@@ -81,13 +100,26 @@ class MainActivity : AppCompatActivity() {
 
                         is State.Success -> {
                             hideLoading()
+                            photoList.addAll(status.photos)
                             showImages(status.photos)
                         }
                     }
                 },{
                     t -> t.printStackTrace()
                 })
+    }
 
+    override fun onSaveInstanceState(outState: Bundle?) {
+        photoList.apply {
+            outState?.clear()
+            outState?.putParcelableArrayList(CACHED_PHOTOS, this)
+            return
+        }
+        super.onSaveInstanceState(outState)
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration?) {
+        super.onConfigurationChanged(newConfig)
     }
 
     private fun loadMore(){
@@ -112,8 +144,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showImages(photos: List<Photo>){
-
-        photoList.addAll(photos)
 
         myAdapter = MyImageAdapter(photos.toMutableList(), object : Listener{
             override fun onItemClickAtPosition(position: Int) {
