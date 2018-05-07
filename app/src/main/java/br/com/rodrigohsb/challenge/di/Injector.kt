@@ -87,8 +87,8 @@ class Injector (val context: Context) {
     }
 
     companion object {
-        private val LOG_INTERCEPTOR = "LogInterceptor"
-        private val REQUEST_INTERCEPTOR = "RequestInterceptor"
+        val LOG_INTERCEPTOR = "LogInterceptor"
+        val REQUEST_INTERCEPTOR = "RequestInterceptor"
     }
 
 }

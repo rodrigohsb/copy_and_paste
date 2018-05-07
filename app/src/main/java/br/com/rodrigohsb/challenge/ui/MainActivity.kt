@@ -5,13 +5,12 @@ import android.arch.lifecycle.ViewModel
 import android.arch.lifecycle.ViewModelProvider
 import android.arch.lifecycle.ViewModelProviders
 import android.content.Intent
-import android.content.res.Configuration
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
+import android.support.design.widget.Snackbar
 import android.support.v7.widget.GridLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.view.View
-import android.widget.Toast
 import br.com.rodrigohsb.challenge.decorator.GridDividerItemDecoration
 import br.com.rodrigohsb.challenge.adapter.MyImageAdapter
 import br.com.rodrigohsb.challenge.entry.Photo
@@ -25,9 +24,13 @@ import br.com.rodrigohsb.joao_challenge.R
 import com.github.salomonbrys.kodein.LazyKodein
 import com.github.salomonbrys.kodein.android.appKodein
 import com.github.salomonbrys.kodein.instance
+import com.jakewharton.rxbinding2.view.RxView
 import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.disposables.Disposable
 import io.reactivex.rxkotlin.plusAssign
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.error_state.*
+import kotlinx.android.synthetic.main.loading_state.*
 
 class MainActivity : AppCompatActivity() {
 
@@ -82,22 +85,6 @@ class MainActivity : AppCompatActivity() {
 
                         is State.Loading -> showLoading()
 
-                        is State.Error -> {
-                            hideLoading()
-
-                            textError.visibility = View.VISIBLE
-
-                            when(status.exception){
-                                is TimeoutException -> textError.text = "TimeoutException"
-                                is Error4XXException -> textError.text = "Error4XXException"
-                                is NoNetworkException -> textError.text = "NoNetworkException"
-                                is BadRequestException -> textError.text = "BadRequestException"
-                                is NoDataException -> textError.text = "NoDataException"
-                                is Error5XXException -> textError.text = "Error5XXException"
-                                else -> textError.text = "GenericError"
-                            }
-                        }
-
                         is State.Success -> {
                             hideLoading()
                             photoList.addAll(status.photos)
@@ -105,7 +92,20 @@ class MainActivity : AppCompatActivity() {
                         }
                     }
                 },{
-                    t -> t.printStackTrace()
+                    t ->
+                    clearView()
+                    when (t) {
+                        is TimeoutException -> showErrorView(R.string.timeout_error_message)
+                        is Error4XXException -> showErrorView(R.string.client_error_message)
+                        is NoNetworkException -> showErrorView(R.string.no_connection_error_message)
+                        is BadRequestException -> showErrorView(R.string.bad_request_error_message)
+                        is NoDataException -> showErrorView(R.string.empty_error_message)
+                        is Error5XXException -> {
+                            showErrorView(R.string.server_error_message)
+                            errorButton.visibility = View.GONE
+                        }
+                        else -> showErrorView(R.string.generic_error_message)
+                    }
                 })
     }
 
@@ -118,23 +118,25 @@ class MainActivity : AppCompatActivity() {
         super.onSaveInstanceState(outState)
     }
 
-    override fun onConfigurationChanged(newConfig: Configuration?) {
-        super.onConfigurationChanged(newConfig)
-    }
-
-    private fun loadMore(){
-        disposables += viewModel.loadMore()
+    private fun loadMore(): Disposable {
+        return viewModel.loadMore()
                 .subscribe({
                     status: State ->
                     when(status){
-                        is State.Error -> {
-                            //TODO show message
-                        }
-
                         is State.Success -> appendImages(status.photos)
                     }
                 },{
-                    t -> t.printStackTrace()
+                    t ->
+                    clearView()
+                    when (t) {
+                        is TimeoutException -> showSnackBar(R.string.timeout_error_message)
+                        is Error4XXException -> showSnackBar(R.string.client_error_message)
+                        is NoNetworkException -> showSnackBar(R.string.no_connection_error_message)
+                        is BadRequestException -> showSnackBar(R.string.bad_request_error_message)
+                        is NoDataException -> showSnackBar(R.string.empty_error_message)
+                        is Error5XXException -> showSnackBar(R.string.server_error_message)
+                        else -> showSnackBar(R.string.generic_error_message)
+                    }
                 })
     }
 
@@ -175,11 +177,18 @@ class MainActivity : AppCompatActivity() {
             visible()
             addOnScrollListener(object: RecyclerView.OnScrollListener() {
                 override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-                    if (cannotScrollVertically(recyclerView)) loadMore()
+                    if (cannotScrollVertically(recyclerView)) disposables += loadMore()
                 }
             })
         }
     }
+
+    private fun clearView() {
+        hideErrorView()
+        hideLoading()
+    }
+
+    private fun hideErrorView() { errorRoot.visibility = View.GONE }
 
     private fun hideLoading() = progress.gone()
 
@@ -198,6 +207,19 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
+
+    private fun showErrorView(msgId: Int) {
+        errorState.setText(msgId)
+        RxView
+            .clicks(errorButton)
+            .subscribe({
+                clearView()
+                disposables += loadMore()
+            })
+        errorRoot.visibility = View.VISIBLE
+    }
+
+    private fun showSnackBar(msgId: Int) = Snackbar.make(root, "$msgId", Snackbar.LENGTH_LONG).show()
 
     override fun onDestroy() {
         disposables.clear()

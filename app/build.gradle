@@ -27,12 +27,26 @@ android {
 
 dependencies {
     implementation"org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
+    implementation "com.android.support:design:27.1.0"
     implementation 'com.android.support:appcompat-v7:27.1.0'
     implementation 'com.android.support:recyclerview-v7:27.1.0'
-    implementation 'com.android.support.constraint:constraint-layout:1.1.0'
+    implementation 'com.android.support.constraint:constraint-layout:1.0.2'
     testImplementation 'junit:junit:4.12'
-    androidTestImplementation 'com.android.support.test:runner:1.0.2'
-    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
+    androidTestImplementation 'com.android.support.test:runner:1.0.1'
+
+    implementation "org.mockito:mockito-core:2.12.0"
+    implementation "com.squareup.okhttp3:mockwebserver:3.8.0"
+    testImplementation "com.nhaarman:mockito-kotlin-kt1.1:1.5.0"
+    androidTestImplementation "org.mockito:mockito-android:2.9.0"
+    testImplementation "android.arch.core:core-testing:1.1.0"
+
+    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
+    androidTestImplementation 'com.android.support.test.espresso:espresso-intents:3.0.1'
+    androidTestImplementation('com.android.support.test.espresso:espresso-contrib:2.0') {
+        exclude group: 'com.android.support', module: 'appcompat'
+        exclude group: 'com.android.support', module: 'support-v4'
+        exclude module: 'recyclerview-v7'
+    }
 
     implementation "com.squareup.retrofit2:retrofit:2.3.0"
     implementation "com.squareup.okhttp3:logging-interceptor:3.10.0"

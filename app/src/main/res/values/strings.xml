@@ -1,3 +1,13 @@
 <resources>
     <string name="app_name">joao-challenge</string>
+
+    <string name="generic_error_message">Generic Error</string>
+    <string name="empty_error_message">Empty Error</string>
+    <string name="timeout_error_message">Timeout Error</string>
+    <string name="no_connection_error_message">No Connection Error</string>
+    <string name="bad_request_error_message">Bad Request Error</string>
+    <string name="client_error_message">Client Error</string>
+    <string name="server_error_message">Server Error</string>
+    <string name="try_again">TENTAR NOVAMENTE</string>
+
 </resources>
