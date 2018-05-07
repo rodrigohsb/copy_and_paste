@@ -48,8 +48,8 @@ class DetailsActivity: AppCompatActivity() {
             layoutManager = LinearLayoutManager(this@DetailsActivity,
                             LinearLayoutManager.HORIZONTAL,
                             false)
+            layoutManager.scrollToPosition(position)
             visible()
         }
-        detailsRecyclerView.layoutManager.scrollToPosition(position)
     }
 }

@@ -27,9 +27,9 @@ import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
 
-    private var isLoading: Boolean = false
-
     private lateinit var myAdapter: MyImageAdapter
+
+    private var photoList = mutableListOf<Photo>()
 
     private val disposables by lazy { CompositeDisposable() }
 
@@ -89,7 +89,6 @@ class MainActivity : AppCompatActivity() {
         disposables += viewModel.loadMore()
                 .subscribe({
                     status: State ->
-                    hideFooterLoading()
                     when(status){
                         is State.Error -> {
                             //TODO show message
@@ -103,15 +102,18 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun appendImages(photos: List<Photo>){
+        photoList.addAll(photos)
         myAdapter.appendImages(photos)
     }
 
     private fun showImages(photos: List<Photo>){
 
+        photoList.addAll(photos)
+
         myAdapter = MyImageAdapter(photos.toMutableList(), object : Listener{
             override fun onItemClickAtPosition(position: Int) {
                 val photosDetailsList = arrayListOf<String>()
-                photos.mapTo(photosDetailsList){ it.regularUrl }
+                photoList.mapTo(photosDetailsList){ it.regularUrl }
                 DetailsActivity.start(this@MainActivity, position, photosDetailsList)
             }
         })
@@ -144,10 +146,6 @@ class MainActivity : AppCompatActivity() {
 
     private fun showLoading() = progress.visible()
 
-    private fun hideFooterLoading() = footerProgress.gone()
-
-    private fun showFooterLoading() = footerProgress.visible()
-
     override fun onDestroy() {
         disposables.clear()
         super.onDestroy()
@@ -155,14 +153,7 @@ class MainActivity : AppCompatActivity() {
 
     inner class OnVerticalScrollListener : RecyclerView.OnScrollListener() {
         override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-            if (cannotScrollVertically(recyclerView)) {
-                loadMore()
-                if (isLoading && dy > 0) {
-                    showFooterLoading()
-                    return
-                }
-            }
-            if (isLoading && dy < 0) hideFooterLoading()
+            if (cannotScrollVertically(recyclerView)) loadMore()
         }
     }
 

@@ -8,6 +8,7 @@ import br.com.rodrigohsb.challenge.entry.Photo
 import br.com.rodrigohsb.joao_challenge.R
 import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.image_item.view.*
+import com.jakewharton.rxbinding2.view.RxView
 
 /**
  * @rodrigohsb
@@ -27,9 +28,7 @@ class MyImageAdapter(private val photos: MutableList<Photo>, val listener: Liste
                 .inflate(R.layout.image_item, parent, false))
     }
 
-    override fun getItemCount(): Int {
-        return photos.size
-    }
+    override fun getItemCount() = photos.size
 
     override fun getItemViewType(position: Int): Int {
         return if (isPositionFooter(position))
@@ -51,9 +50,11 @@ class MyImageAdapter(private val photos: MutableList<Photo>, val listener: Liste
             .load(photo.smallUrl)
             .into(holder.itemView.image)
 
-        holder.itemView.setOnClickListener {
-            listener.onItemClickAtPosition(position)
-        }
+        RxView.
+                clicks(holder.itemView)
+                .subscribe({
+                    listener.onItemClickAtPosition(position)
+                })
     }
 
     fun appendImages(newPhotos: List<Photo>) {
