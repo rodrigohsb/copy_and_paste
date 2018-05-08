@@ -79,33 +79,9 @@ class MainActivity : AppCompatActivity() {
         }
         disposables += viewModel.listPhotos()
                 .subscribe({
-                    status: State ->
-
-                    when(status){
-
-                        is State.Loading -> showLoading()
-
-                        is State.Success -> {
-                            hideLoading()
-                            photoList.addAll(status.photos)
-                            showImages(status.photos)
-                        }
-                    }
-                },{
-                    t ->
-                    clearView()
-                    when (t) {
-                        is TimeoutException -> showErrorView(R.string.timeout_error_message)
-                        is Error4XXException -> showErrorView(R.string.client_error_message)
-                        is NoNetworkException -> showErrorView(R.string.no_connection_error_message)
-                        is BadRequestException -> showErrorView(R.string.bad_request_error_message)
-                        is NoDataException -> showErrorView(R.string.empty_error_message)
-                        is Error5XXException -> {
-                            showErrorView(R.string.server_error_message)
-                            errorButton.visibility = View.GONE
-                        }
-                        else -> showErrorView(R.string.generic_error_message)
-                    }
+                    status: State -> handleStatus(status)
+                }, {
+                    t -> processError(t as Exception)
                 })
     }
 
@@ -118,26 +94,65 @@ class MainActivity : AppCompatActivity() {
         super.onSaveInstanceState(outState)
     }
 
+    private fun handleStatus(status: State) {
+        clearView()
+        when(status){
+            is State.Loading -> showLoading()
+            is State.Error -> processError(status.exception)
+            is State.Success -> {
+                hideLoading()
+                photoList.addAll(status.photos)
+                showImages(status.photos)
+            }
+        }
+    }
+
+    private fun processError(t: Throwable) {
+        clearView()
+        when (t) {
+            is TimeoutException -> showErrorView(R.string.timeout_error_message)
+            is Error4XXException -> showErrorView(R.string.client_error_message)
+            is NoNetworkException -> showErrorView(R.string.no_connection_error_message)
+            is BadRequestException -> showErrorView(R.string.bad_request_error_message)
+            is NoDataException -> showErrorView(R.string.empty_error_message)
+            is Error5XXException -> showErrorView(R.string.server_error_message)
+            else -> showErrorView(R.string.generic_error_message)
+        }
+    }
+
     private fun loadMore(): Disposable {
         return viewModel.loadMore()
                 .subscribe({
-                    status: State ->
-                    when(status){
-                        is State.Success -> appendImages(status.photos)
-                    }
+                    status: State -> handleStatusWhenLoadingMore(status)
                 },{
-                    t ->
-                    clearView()
-                    when (t) {
-                        is TimeoutException -> showSnackBar(R.string.timeout_error_message)
-                        is Error4XXException -> showSnackBar(R.string.client_error_message)
-                        is NoNetworkException -> showSnackBar(R.string.no_connection_error_message)
-                        is BadRequestException -> showSnackBar(R.string.bad_request_error_message)
-                        is NoDataException -> showSnackBar(R.string.empty_error_message)
-                        is Error5XXException -> showSnackBar(R.string.server_error_message)
-                        else -> showSnackBar(R.string.generic_error_message)
-                    }
+                    t -> processErrorWhenLoadingMore(t as Exception)
                 })
+    }
+
+    private fun handleStatusWhenLoadingMore(status: State) {
+        clearView()
+        when(status){
+            is State.Loading -> showLoading()
+            is State.Error -> processError(status.exception)
+            is State.Success -> {
+                hideLoading()
+                photoList.addAll(status.photos)
+                appendImages(status.photos)
+            }
+        }
+    }
+
+    private fun processErrorWhenLoadingMore(t: Throwable) {
+        clearView()
+        when (t) {
+            is TimeoutException -> showSnackBar(R.string.timeout_error_message)
+            is Error4XXException -> showSnackBar(R.string.client_error_message)
+            is NoNetworkException -> showSnackBar(R.string.no_connection_error_message)
+            is BadRequestException -> showSnackBar(R.string.bad_request_error_message)
+            is NoDataException -> showSnackBar(R.string.empty_error_message)
+            is Error5XXException -> showSnackBar(R.string.server_error_message)
+            else -> showSnackBar(R.string.generic_error_message)
+        }
     }
 
     private fun appendImages(photos: List<Photo>){
@@ -219,7 +234,7 @@ class MainActivity : AppCompatActivity() {
         errorRoot.visibility = View.VISIBLE
     }
 
-    private fun showSnackBar(msgId: Int) = Snackbar.make(root, "$msgId", Snackbar.LENGTH_LONG).show()
+    private fun showSnackBar(msgId: Int) = Snackbar.make(root, getString(msgId), Snackbar.LENGTH_LONG).show()
 
     override fun onDestroy() {
         disposables.clear()
